@@ -1,40 +1,52 @@
 import { useQuery } from "@tanstack/react-query";
-import { BASE_API_URL } from "../constants";
 import { JobItem } from "../types";
 import { handleError } from "../utils";
+import supabase from "../supabase";
+import { JOBS_PER_PAGE } from "../constants";
 
 
 type JobItemsApiResponse = {
-    public: boolean;
-    sorted: boolean;
     jobItems: JobItem[];
+    count: number | null;
 }
 
-const fetchJobItems = async (value: string): Promise<JobItemsApiResponse> => {
-    const res = await fetch(`${BASE_API_URL}?search=${value}`)
-    if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.description);
+const fetchJobItems = async (value: string, page: number): Promise<JobItemsApiResponse> => {
+    const { data, count, error } = await supabase
+        .from('job_offers')
+        .select(`*`, { count: "exact" })
+        .ilikeAnyOf('title', [`%${value}%`, `%${value}_%`])
+        .order('daysAgo', {ascending: true})
+        .limit(JOBS_PER_PAGE)
+        .range(page * JOBS_PER_PAGE - JOBS_PER_PAGE, page * JOBS_PER_PAGE - 1)
+    
+    if (error) {
+        console.log(error);
+        throw error;
     }
-
-    const data = await res.json();
-    return data;
+    
+    return {
+        jobItems: data,
+        count
+    }
 }
 
-export function useSearchQuery(value: string) {
+
+export function useSearchQuery(value: string, page = 1) {
     const { data, isInitialLoading } = useQuery(
-        ['job-items', value],
-        () => fetchJobItems(value),
+        ['job-items', value, page],
+        () => fetchJobItems(value, page),
         {
             staleTime: 1000 * 60 * 60,
             refetchOnWindowFocus: false,
             retry: false,
-            enabled: Boolean(value),
+            // enabled: Boolean(value),
             onError: handleError
         }
     )
+    
+    const jobItems = data?.jobItems;    
+    const total = data?.count ?? 0;
+  
 
-    const jobItems = data?.jobItems;
-
-    return { jobItems, jobItemsIsLoading: isInitialLoading }
+    return { jobItems, total, jobItemsIsLoading: isInitialLoading }
 }

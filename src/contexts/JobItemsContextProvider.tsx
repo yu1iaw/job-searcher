@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from "react
 import { useSearchContext } from "./SearchContextProvider";
 import { JobItem, PageDirection, SortedBy } from "../lib/types";
 import { useSearchQuery } from "../lib/hooks/useSearchQuery";
+import { JOBS_PER_PAGE } from "../lib/constants";
 
 type TJobItemsContext = {
     currentPage: number;
@@ -12,6 +13,8 @@ type TJobItemsContext = {
     limitedItems: JobItem[];
     handleChangePage: (direction: PageDirection) => void;
     handleSortedBy: (filter: SortedBy) => void;
+    handleSearchText: () => void;
+    handleFullJobList: (list: JobItem[]) => void;
 }
 
 const JobItemsContext = createContext<TJobItemsContext | null>(null);
@@ -21,19 +24,18 @@ export const JobItemsContextProvider = ({ children }: {children: React.ReactNode
     const { debouncedSearchValue } = useSearchContext();
     const [currentPage, setCurrentPage] = useState(1);
     const [sortedBy, setSortedBy] = useState<SortedBy>("Relevant");
-    const { jobItems, jobItemsIsLoading } = useSearchQuery(debouncedSearchValue);
-    const totalJobItems = jobItems?.length || 0;
-    const totalPages = Math.ceil(totalJobItems / 7);
-    const filteredJobItems = useMemo(() => jobItems?.length && [...jobItems].sort((a, b) => {
-        if (sortedBy === "Relevant") {
-            return b.relevanceScore - a.relevanceScore;
-        } else {
-            return a.daysAgo - b.daysAgo;
+    const [fullJobList, setFullJobList] = useState<JobItem[]>([]);
+    const { jobItems, total, jobItemsIsLoading } = useSearchQuery(debouncedSearchValue, currentPage);
+    const totalPages = Math.ceil(total / JOBS_PER_PAGE);
+
+    const filteredJobItems = useMemo(() => {
+        if (sortedBy === "Shuffle") {
+            return [...fullJobList].sort(() => Math.random() - 0.5).slice(currentPage * JOBS_PER_PAGE - JOBS_PER_PAGE, currentPage * JOBS_PER_PAGE);
+        } else {            
+            return [...jobItems || []]
         }
-    }) || [], [jobItems, sortedBy]);
-
-    const limitedItems = useMemo(() => filteredJobItems.slice(currentPage * 7 - 7, currentPage * 7) || [], [filteredJobItems, currentPage]);
-
+    }, [sortedBy, jobItems, fullJobList, currentPage])
+    
 
     const handleChangePage = useCallback((direction: PageDirection) => {
         if (direction === "next") {
@@ -48,16 +50,27 @@ export const JobItemsContextProvider = ({ children }: {children: React.ReactNode
         setSortedBy(filter);
     }, [])
 
+    const handleFullJobList = useCallback((list: JobItem[]) => {
+        setFullJobList(list);
+    }, [])
+
+    const handleSearchText = useCallback(() => {
+        setCurrentPage(1);
+    }, [])
+
+
     const contextValue = useMemo(() => ({
         currentPage,
         sortedBy,
         jobItemsIsLoading,
-        totalJobItems,
+        totalJobItems: total,
         totalPages,
-        limitedItems,
+        limitedItems: filteredJobItems,
         handleChangePage,
-        handleSortedBy
-    }), [currentPage, sortedBy, jobItemsIsLoading, totalJobItems, totalPages, limitedItems, handleChangePage, handleSortedBy])
+        handleSortedBy,
+        handleSearchText,
+        handleFullJobList
+    }), [currentPage, sortedBy, jobItemsIsLoading, total, totalPages, filteredJobItems, handleChangePage, handleSortedBy, handleSearchText, handleFullJobList])
 
     
     return (

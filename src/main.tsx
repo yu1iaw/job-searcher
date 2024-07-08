@@ -6,6 +6,7 @@ import { BookmarksContextProvider } from './contexts/BookmarksContextProvider'
 import { SearchContextProvider } from './contexts/SearchContextProvider'
 import { ActiveHashContextProvider } from './contexts/ActiveHashContextProvider'
 import { JobItemsContextProvider } from './contexts/JobItemsContextProvider'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import './index.css'
 
 
@@ -23,6 +24,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           </SearchContextProvider>
         </ActiveHashContextProvider>
       </BookmarksContextProvider>
+      <ReactQueryDevtools />
     </QueryClientProvider>
   </React.StrictMode>,
 )

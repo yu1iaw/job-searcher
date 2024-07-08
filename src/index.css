@@ -88,7 +88,7 @@ body::-webkit-scrollbar {
 }
 
 .second-heading {
-  font-size: 23px;
+  font-size: 22px;
   color: #fff;
   font-weight: 500;
 }
@@ -624,14 +624,23 @@ body::-webkit-scrollbar {
 }
 
 .sorting__button {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   background-color: #e8edf0;
   padding: 6px 8px;
+  height: 30px;
   border-radius: 3px;
   margin-left: 2px;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.sorting__button--shuffle {
+  width: 60px;
+}
+
+.sorting__button--shuffle svg {
+  vertical-align: middle;
 }
 
 .sorting__button:hover,

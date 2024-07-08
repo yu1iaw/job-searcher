@@ -1,12 +1,19 @@
+import { useJobItemsContext } from "../contexts/JobItemsContextProvider";
 import { useSearchContext } from "../contexts/SearchContextProvider";
 
 
 
 export default function SearchForm() {
     const { searchValue, setSearchValue } = useSearchContext();
+    const { handleSearchText } = useJobItemsContext();
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+    }
+
+    const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchValue(e.target.value);
+        handleSearchText();
     }
 
     return (
@@ -17,7 +24,7 @@ export default function SearchForm() {
 
             <input
                 value={searchValue}
-                onChange={e => setSearchValue(e.target.value)}
+                onChange={onChange}
                 spellCheck="false"
                 type="text"
                 required

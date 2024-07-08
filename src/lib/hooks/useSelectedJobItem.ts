@@ -1,24 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
 import { handleError } from "../utils";
 import { SelectedJobItem } from "../types";
-import { BASE_API_URL } from "../constants";
-
+import supabase from "../supabase";
 
 
 type JobItemApiResponse = {
-    public: boolean;
     jobItem: SelectedJobItem;
 }
 
 export const fetchJobItem = async (id: number): Promise<JobItemApiResponse> => {
-    const res = await fetch(`${BASE_API_URL}/${id}`);
-    // 4xx or 5xx
-    if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.description);
+    const { data, error } = await supabase
+        .from('job_offers_details')
+        .select(`*, job_offer:id (*)`)
+        .eq('id', id)
+        .single()
+    
+    if (error) throw error.details;
+    
+    const { job_offer, ...rest } = data;
+    const jobItem = {
+        ...rest,
+        ...job_offer
     }
-    const data = await res.json();
-    return data;
+    // @ts-ignore
+    return { jobItem };
 }
 
 export function useSelectedJobItem(id: number | null) {
