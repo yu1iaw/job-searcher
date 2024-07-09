@@ -37,8 +37,9 @@ const PaginationButton = ({ currentPage, direction, onClick }: PaginationButtonP
                 onClick();
             }}
         >
+            {direction === "previous" && <ArrowLeftIcon />}
             Page {pageNum}
-            {direction === "next" ? <ArrowRightIcon /> : <ArrowLeftIcon />}
+            {direction === "next" && <ArrowRightIcon /> }
         </button>
     )
 }

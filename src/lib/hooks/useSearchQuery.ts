@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { JobItem } from "../types";
-import { handleError } from "../utils";
+import { handleError, handleStringPattern } from "../utils";
 import supabase from "../supabase";
 import { JOBS_PER_PAGE } from "../constants";
 
@@ -11,10 +11,12 @@ type JobItemsApiResponse = {
 }
 
 const fetchJobItems = async (value: string, page: number): Promise<JobItemsApiResponse> => {
+    const strToMatch = handleStringPattern(value);
+
     const { data, count, error } = await supabase
         .from('job_offers')
         .select(`*`, { count: "exact" })
-        .ilikeAnyOf('title', [`%${value}%`, `%${value}_%`])
+        .ilike('title', `%${strToMatch}%`)
         .order('daysAgo', {ascending: true})
         .limit(JOBS_PER_PAGE)
         .range(page * JOBS_PER_PAGE - JOBS_PER_PAGE, page * JOBS_PER_PAGE - 1)

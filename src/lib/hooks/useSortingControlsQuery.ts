@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import supabase from "../supabase";
 import { JobItem, SortedBy } from "../types";
-import { handleError } from "../utils";
+import { handleError, handleStringPattern } from "../utils";
 
 
 type FullJobListApiResponse = {
@@ -9,10 +9,12 @@ type FullJobListApiResponse = {
 }
 
 const fetchFullJobList = async (value: string): Promise<FullJobListApiResponse> => {    
+    const strToMatch = handleStringPattern(value);
+
     const { data, error } = await supabase
         .from('job_offers')
         .select(`*`)
-        .ilikeAnyOf('title', [`%${value}%`, `%${value}_%`])
+        .ilike('title', `%${strToMatch}%`)
 
     if (error) {
         console.log(error);

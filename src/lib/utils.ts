@@ -12,3 +12,7 @@ export const handleError = (error: unknown) => {
 
     toast.error(message)
 }
+
+export const handleStringPattern = (str: string) => {
+    return str.match(/\bfront|full|back/i) ? str.replace(/(\B(end|stack)|\W+(end|stack)?)\s?(\w+\s?)?/i, '') : str.trim();
+}
